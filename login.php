@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Gate Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
@@ -64,20 +64,6 @@
             color: #fff;
         }
     </style>
-    <script>
-        function toggleLocationSelect() {
-            var userSelect = document.getElementById('user');
-            var locationSelect = document.getElementById('location');
-
-            if (userSelect.value === 'User') {
-                locationSelect.disabled = false;
-                locationSelect.required = true;
-            } else {
-                locationSelect.disabled = true;
-                locationSelect.required = false;
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="login-container">
@@ -96,9 +82,6 @@
             <input type="password" name="password" placeholder="Password" class="form-input" required><br>
             <select name="location" id="location" class="form-input" disabled>
                 <option value="">Select Location</option>
-                <option value="Main Library">Main Library</option>
-                <option value="Library-SoM">Library-SoM</option>
-                <option value="Library-SoL">Library-SoL</option>
             </select><br>
             <button type="submit" class="form-submit">Login</button>
         </form>
@@ -106,5 +89,38 @@
     <footer>
         &copy; 2024 Presidency University Library Gate Register
     </footer>
+
+    <script>
+        function toggleLocationSelect() {
+            var userSelect = document.getElementById('user');
+            var locationSelect = document.getElementById('location');
+
+            if (userSelect.value === 'User') {
+                locationSelect.disabled = false;
+                locationSelect.required = true;
+                populateLibraryList(); // Call function to populate location list
+            } else {
+                locationSelect.disabled = true;
+                locationSelect.required = false;
+                locationSelect.innerHTML = '<option value="">Select Location</option>'; // Reset location dropdown
+            }
+        }
+
+        function populateLibraryList() {
+            // Using fetch to get the dropdown options from PHP file
+            fetch('loginLibList.php')
+              .then(response => response.text())
+              .then(data => {
+                document.getElementById('location').innerHTML = data;
+              })
+              .catch(error => console.error('Error fetching libraries:', error));
+        }
+
+        // Initial population of library list on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateLibraryList();
+        });
+    </script>
+
 </body>
 </html>

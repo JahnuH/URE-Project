@@ -179,6 +179,9 @@ if ($inputSubmitted) {
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="GET">
                     <input type='text' name='idInput' autofocus="autofocus" placeholder="Enter ID Number">
                 </form>
+                <div id="errorMessage" style="display: none;">
+                    <h3>User Not Found!</h3>
+                </div>
             </div>
             <div id="userCollection" class="userInfo-panel" style="display: none;">
                 <h2>Welcome to PU Library,</h2>
@@ -276,8 +279,19 @@ if ($inputSubmitted) {
                 echo 'updateSummaryTable();';
             } else if ($inputSubmitted === true && $userNotFound === true) {
                 echo 'console.log("User Not Found!");';
+                echo 'showErrorMessage();';
             }
         ?>
+
+        function showErrorMessage() {
+            var errorMessage = document.getElementById("errorMessage");
+            errorMessage.style.display = "block";
+            errorMessage.style.animation = "flash 0.5s 2";
+
+            setTimeout(function() {
+                errorMessage.style.display = "none";
+            }, 2000);
+        }
 
         function logout() {
             fetch('logout.php')

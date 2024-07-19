@@ -212,6 +212,59 @@ tr {
     margin-top: 10px;
 }
 
+/* Library management section */
+.library-management-container {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+}
+
+.library-management-container label {
+    margin-top: 20px;
+}
+
+.library-management-container input {
+    margin-top: 5px;
+    padding: 10px;
+}
+
+.library-management-container button {
+    margin-top: 20px;
+    padding: 10px;
+}
+
+#library-list {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+#library-list li {
+    margin-bottom: 5px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#library-list li button {
+    padding: 5px 10px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#library-list li button:hover {
+    background-color: #c82333;
+}
+
 /* Add styles for dashboard panels */
 .dashboard-panel {
     background-color: #fff;

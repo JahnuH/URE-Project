@@ -58,7 +58,7 @@ while ($row = $result->fetch_assoc()) {
                 </div>
                 <div class="panel-content">
                     <p>Welcome to the Library Admin Panel of Presidency University.</p>
-                    <p>Here you can view user entry and exit records, view analytics, and adjust settings.</p>
+                    <p>Here you can view user entry and exit records, check analytics, and adjust settings.</p>
                 </div>
             </div>
 
@@ -70,9 +70,16 @@ while ($row = $result->fetch_assoc()) {
                 <div class="panel-content">
                     <label for="user-id">Enter User ID:</label>
                     <input type="text" id="user-id">
+                    <label for="from-date">From Date:</label>
+                    <input type="date" id="from-date">
+                    <label for="to-date">To Date:</label>
+                    <input type="date" id="to-date">
                     <button onclick="searchUser()">Search</button>
                     <div id="user-details">
                         <!-- User details will be displayed here -->
+                    </div>
+                    <div id="user-entries">
+                        <!-- User entries will be displayed here -->
                     </div>
                 </div>
             </div>
@@ -110,7 +117,7 @@ while ($row = $result->fetch_assoc()) {
                     <ul>
                         <li><a href="#" onclick="showTab('records')">View Records</a></li>
                         <li><a href="#" onclick="showTab('analytics')">View Analytics</a></li>
-                        <li><a href="#" onclick="showTab('settings')">Change Password</a></li>
+                        <li><a href="#" onclick="showTab('settings')">Settings</a></li>
                     </ul>
                 </div>
             </div>
@@ -124,10 +131,7 @@ while ($row = $result->fetch_assoc()) {
                     <label for="location-filter">Location:</label>
                     <select id="location-filter">
                         <option value="All">All</option>
-                        <option value="Main Library">Main Library</option>
-                        <option value="Library-SoM">Library-SoM</option>
-                        <option value="Library-SoL">Library-SoL</option>
-                    </select>
+                   </select>
 
                     <label for="sort">Sort By:</label>
                     <select id="sort">
@@ -212,23 +216,37 @@ while ($row = $result->fetch_assoc()) {
         </div>
         <div id="settings-tab" class="tab" style="display: none;">
             <h2>Settings</h2>
-            <div class="password-change-container">
-                <h3>Change Password</h3>
-                <label for="user-type">User Type:</label>
-                <select id="user-type">
-                    <option value="Admin">Admin</option>
-                    <option value="User">User</option>
-                </select>
-
-                <label for="current-password">Current Password:</label>
-                <input type="password" id="current-password" required>
-
-                <label for="new-password">New Password:</label>
-                <input type="password" id="new-password" required>
-
-                <button onclick="changePassword()">Change Password</button>
-
-                <div id="password-change-result" class="pass-change-result"></div>
+            <div class="settings-container" style="display: flex; gap: 100px;">
+                <div class="library-management-container">
+                    <h3>Manage Libraries</h3>
+                    <!-- Form for adding a new library -->
+                    <label for="library-name">Library Name:</label>
+                    <input type="text" id="library-name" required>
+                    <label for="max-capacity">Max Capacity:</label>
+                    <input type="number" id="max-capacity" required>
+                    <button onclick="addLibrary()">Add Library</button>
+                    
+                    <!-- List existing libraries with options to remove -->
+                    <ul id="library-list">
+                        <!-- Populate this dynamically with JavaScript -->
+                    </ul>
+                    <div id="library-change-result" class="pass-change-result"></div>
+                </div>
+                <div class="password-change-container">
+                    <h3>Change Password</h3>
+                    <!-- Existing password change form -->
+                    <label for="user-type">User Type:</label>
+                    <select id="user-type">
+                        <option value="Admin">Admin</option>
+                        <option value="User">User</option>
+                    </select>
+                    <label for="current-password">Current Password:</label>
+                    <input type="password" id="current-password" required>
+                    <label for="new-password">New Password:</label>
+                    <input type="password" id="new-password" required>
+                    <button onclick="changePassword()">Change Password</button>
+                    <div id="password-change-result" class="pass-change-result"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -279,13 +297,17 @@ while ($row = $result->fetch_assoc()) {
 
         function searchUser() {
             const userId = document.getElementById('user-id').value;
-            
-            fetch(`search_user.php?user_id=${userId}`)
+            const fromDate = document.getElementById('from-date').value;
+            const toDate = document.getElementById('to-date').value;
+
+            fetch(`search_user.php?user_id=${userId}&from_date=${fromDate}&to_date=${toDate}`)
                 .then(response => response.json())
                 .then(data => {
                     const userDetails = document.getElementById('user-details');
-                    if (data && data.length > 0) {
-                        const user = data[0];
+                    const userEntries = document.getElementById('user-entries');
+                    
+                    if (data && data.user) {
+                        const user = data.user;
                         const entryTime = user.entry_time ? new Date(user.entry_time).toLocaleString() : 'Never';
 
                         userDetails.innerHTML = `
@@ -297,6 +319,21 @@ while ($row = $result->fetch_assoc()) {
                         `;
                     } else {
                         userDetails.innerHTML = '<p>User not found.</p>';
+                        userEntries.innerHTML = '';
+                    }
+
+                    if (data && data.entries && data.entries.length > 0) {
+                        userEntries.innerHTML = '<h4>User Entries:</h4>';
+                        const entriesList = document.createElement('ul');
+                        data.entries.forEach(entry => {
+                            const entryTime = entry.entry_time ? new Date(entry.entry_time).toLocaleString() : 'Never';
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `Entry Time: ${entryTime}`;
+                            entriesList.appendChild(listItem);
+                        });
+                        userEntries.appendChild(entriesList);
+                    } else {
+                        userEntries.innerHTML += '<p>No entries found within the specified date range.</p>';
                     }
                 })
                 .catch(error => {
@@ -474,7 +511,7 @@ while ($row = $result->fetch_assoc()) {
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Time'
+                                        text: 'Time of Day'
                                     }
                                 },
                                 y: {
@@ -717,6 +754,98 @@ while ($row = $result->fetch_assoc()) {
                 document.getElementById('password-change-result').innerText = "An error occurred.";
             });
         }
+
+        // Function to add a new library
+        function addLibrary() {
+            const libraryName = document.getElementById('library-name').value;
+            const maxCapacity = document.getElementById('max-capacity').value;
+
+            if (!libraryName || !maxCapacity) {
+                document.getElementById('library-change-result').innerText = "Please fill out all fields.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'add');
+            formData.append('library_name', libraryName);
+            formData.append('max_capacity', maxCapacity);
+
+            fetch('libraries.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('library-change-result').innerText = data.message;
+                updateLibraryList();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('library-change-result').innerText = "An error occurred.";
+            });
+        }
+
+        // Function to delete a library
+        function deleteLibrary(libraryName) {
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('library_name', libraryName);
+
+            fetch('libraries.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('library-change-result').innerText = data.message;
+                updateLibraryList();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('library-change-result').innerText = "An error occurred.";
+            });
+        }
+
+        // Function to update the library list dynamically
+        function updateLibraryList() {
+            fetch('libraries.php?action=get')
+            .then(response => response.json())
+            .then(data => {
+                const libraryList = document.getElementById('library-list');
+                libraryList.innerHTML = ''; // Clear existing list
+
+                data.libraries.forEach(library => {
+                    const li = document.createElement('li');
+                    li.textContent = `${library.library_name} (Capacity: ${library.max_capacity})`;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => deleteLibrary(library.library_name);
+                    li.appendChild(deleteButton);
+
+                    libraryList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function populateLibraryList() {
+            // Using fetch to get the dropdown options from PHP file
+            fetch('recordsLibList.php')
+              .then(response => response.text())
+              .then(data => {
+                document.getElementById('location-filter').innerHTML = data;
+              })
+              .catch(error => console.error('Error fetching libraries:', error));
+        }
+
+        // Initial population of library list on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLibraryList();
+            populateLibraryList();
+        });
         
     </script>
 </body>
