@@ -1,0 +1,77 @@
+//duration
+$durationDistributionQuery = "SELECT 
+                                CASE 
+                                    WHEN duration < 600 THEN '< 10 minutes'
+                                    WHEN duration BETWEEN 600 AND 1800 THEN '10-30 min'
+                                    WHEN duration BETWEEN 1801 AND 3600 THEN '30 min - 1 hr'
+                                    WHEN duration BETWEEN 3601 AND 7200 THEN '1-2 hrs'
+                                    WHEN duration BETWEEN 7201 AND 10800 THEN '2-3 hrs'
+                                    ELSE '> 3 hrs'
+                                END AS duration_range,
+                                COUNT(*) AS count 
+                              FROM user_entries 
+                              WHERE DATE(entry_time) BETWEEN '$startDate' AND '$endDate' 
+                              GROUP BY duration_range";
+
+$durationDistributionResult = mysqli_query($conn, $durationDistributionQuery);
+$durationRanges = [];
+$counts = [];
+while ($row = mysqli_fetch_assoc($durationDistributionResult)) {
+    $durationRanges[] = $row['duration_range'];
+    $counts[] = $row['count'];
+}
+$data['duration_distribution'] = ['ranges' => $durationRanges, 'counts' => $counts];
+
+
+
+
+
+
+
+                    renderChart('duration-distribution-chart', {
+                        type: 'bar',
+                        data: {
+                            labels: data.duration_distribution.ranges,
+                            datasets: [{
+                                data: data.duration_distribution.counts,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Duration Distribution'
+                                },
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Duration Range'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Count'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+
+
+
+
+                <div class="chart-container">
+                    <canvas id="duration-distribution-chart"></canvas>
+                </div>
